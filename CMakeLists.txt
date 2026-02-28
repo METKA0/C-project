@@ -1,14 +1,14 @@
-cmake_minimum_required(VERSION 3.15) # add_link_options için 3.15+ daha iyidir
-project(CProject)
+cmake_minimum_required(VERSION 3.15)
+project(C-Project)
 
+add_subdirectory(external/sfml)
+add_executable(game src/main.cpp)
+target_link_libraries(game sfml-graphics sfml-window sfml-system)
 
-add_executable(cproject main.cpp)
+if (MSVC)
 
+    target_compile_options(game PRIVATE /fsanitize=address /Zi)
 
-if(MSVC OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_link_options(game PRIVATE /INCREMENTAL:NO /DEBUG)
 
-    target_compile_options(cproject PUBLIC /fsanitize=address /Zi)
-    
-
-    target_link_options(cproject PUBLIC /fsanitize=address /INCREMENTAL:NO)
 endif()

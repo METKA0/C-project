@@ -1,5 +1,6 @@
 build/
+bin/
+obj/
 *.exe
-*.obj
-CMakeFiles/
-CMakeCache.txt
+*.dll
+*.pdb
