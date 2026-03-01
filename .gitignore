@@ -1,0 +1,13 @@
+build/
+# IDE ve Geçici Dosyalar
+.vs/
+out/
+build/
+bin/
+obj/
+
+# Derleme Çıktıları
+*.exe
+*.pdb
+*.ilk
+*.obj
