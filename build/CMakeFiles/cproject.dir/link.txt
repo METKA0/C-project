@@ -1,3 +1,0 @@
-"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\cproject.dir/objects.a
-C:\msys64\mingw64\bin\ar.exe qc CMakeFiles\cproject.dir/objects.a @CMakeFiles\cproject.dir\objects1.rsp
-C:\msys64\mingw64\bin\c++.exe -Wl,--whole-archive CMakeFiles\cproject.dir/objects.a -Wl,--no-whole-archive -o cproject.exe -Wl,--out-implib,libcproject.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\cproject.dir\linkLibs.rsp
