@@ -26,6 +26,28 @@ REFERENCES
 */
 
 
+
+
+void collider(sf::Sprite& bread,float windowWidth, float windowHeight)
+{
+	if (bread.getGlobalBounds().position.x > windowWidth - (bread.getGlobalBounds().size.x))
+	{
+		bread.setPosition({ windowWidth - (bread.getGlobalBounds().size.x / 2), bread.getGlobalBounds().position.y + (bread.getGlobalBounds().size.y / 2) });
+	}
+	if (bread.getGlobalBounds().position.x < 0)
+	{
+		bread.setPosition({ 0 + (bread.getGlobalBounds().size.x / 2), bread.getGlobalBounds().position.y + (bread.getGlobalBounds().size.y / 2) });
+	}
+	if (bread.getGlobalBounds().position.y > windowHeight - (bread.getGlobalBounds().size.x))
+	{
+		bread.setPosition({ bread.getGlobalBounds().position.x + (bread.getGlobalBounds().size.x / 2) , windowHeight - (bread.getGlobalBounds().size.y / 2) });
+	}
+	if (bread.getGlobalBounds().position.y < 0)
+	{
+		bread.setPosition({ bread.getGlobalBounds().position.x + (bread.getGlobalBounds().size.x / 2), 0 + (bread.getGlobalBounds().size.y / 2) });
+	}
+}
+
 int main()
 {
 	sf::RenderWindow window(sf::VideoMode({ 1920,1080 }), "Shapes");
@@ -43,12 +65,12 @@ int main()
 
 
 	sf::Texture background_t;
-	if (background_t.loadFromFile("../../../assets/images/background.jpg"))
+	if (!background_t.loadFromFile("../../../assets/images/background.jpg"))
 	{
 		std::cout << "background.jpg loadfromfile error \n";
 	}
 	sf::Texture bread_t;
-	if (bread_t.loadFromFile("../../../assets/images/bread_spritesheet.png"))
+	if (!bread_t.loadFromFile("../../../assets/images/bread_spritesheet.png"))
 	{
 		std::cout << "background.jpg loadfromfile error \n";
 	}
@@ -57,7 +79,7 @@ int main()
 	sf::Sprite background(background_t);
 	background.setScale({ windowWidth / background_t.getSize().x,windowHeight / background_t.getSize().y });
 	sf::Sprite bread(bread_t);
-	bread.setTextureRect(sf::IntRect({0, 0}, {32, 46}));
+	bread.setTextureRect(sf::IntRect({0, 0}, {32, 32}));
 	bread.setScale({ 4.0f,4.0f });
 	bread.setOrigin(bread.getLocalBounds().getCenter());
 	bread.setPosition({ windowWidth / 2.f, windowHeight / 2.f });
@@ -96,7 +118,7 @@ int main()
 
 
 	sf::Font font;
-	if (font.openFromFile("../../../assets/fonts/RobotoMono-Regular.ttf"))
+	if (!font.openFromFile("../../../assets/fonts/RobotoMono-Regular.ttf"))
 	{
 		std::cout << "RobotoMono-Regular.ttf openfromfile error\n";
 	}
@@ -220,12 +242,19 @@ int main()
 		stateIndex = 0;
 
 
+
+		// std::cout << bread.getGlobalBounds().position.x << "    " << bread.getGlobalBounds().position.y << "\n" << bread.getGlobalBounds().size.x << "    " << bread.getGlobalBounds().size.y << "  \n\n";
+
+
+		collider(bread, windowWidth, windowHeight);
+
+
 		window.clear();;
 		window.draw(background);
 		window.draw(text);
 		// window.draw(shape);
 		window.draw(bread);
-		window.setView(view);
+		// window.setView(view);
 		window.display();
 
 	}
