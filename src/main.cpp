@@ -1,4 +1,5 @@
 #include <iostream>
+#include <print>
 
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
@@ -26,85 +27,103 @@ REFERENCES
 */
 
 
+//void checkCollision(sf::Sprite& bread, float windowWidth, float windowHeight)
+//{
+//	if (bread.getGlobalBounds().getCenter().x > windowWidth - (bread.getGlobalBounds().size.x / 2.0f))
+//	{
+//		bread.setPosition({ windowWidth - (bread.getGlobalBounds().size.x / 2.0f), bread.getGlobalBounds().getCenter().y });
+//	}
+//	if (bread.getGlobalBounds().getCenter().x < bread.getGlobalBounds().size.x / 2.0f)
+//	{
+//		bread.setPosition({ bread.getGlobalBounds().size.x / 2.0f, bread.getGlobalBounds().getCenter().y });
+//	}
+//	if (bread.getGlobalBounds().getCenter().y > windowHeight - (bread.getGlobalBounds().size.y / 2.0f))
+//	{
+//		bread.setPosition({ bread.getGlobalBounds().getCenter().x, windowHeight - (bread.getGlobalBounds().size.y / 2.0f) });
+//	}
+//	if (bread.getGlobalBounds().getCenter().y < (bread.getGlobalBounds().size.y / 2.0f))
+//	{
+//		bread.setPosition({ bread.getGlobalBounds().getCenter().x, (bread.getGlobalBounds().size.y / 2.0f) });
+//	}
+//}
+
+void checkCollision(sf::Sprite& bread, float windowWidth, float windowHeight, float breadPozX, float breadPozY, float breadSizeX, float breadSizeY)
+{
+	if (breadPozX > windowWidth - (breadSizeX / 2.0f))
+	{
+		bread.setPosition({ windowWidth - (breadSizeX / 2.0f), breadPozY });
+	}
+	if (breadPozX < breadSizeX / 2.0f)
+	{
+		bread.setPosition({ breadSizeX / 2.0f , breadPozY });
+	}
+	if (breadPozY > windowHeight - (breadSizeY / 2.0f))
+	{
+		bread.setPosition({ breadPozX , windowHeight - (breadSizeY / 2.0f) });
+	}
+	if (breadPozY < (breadSizeY / 2.0f))
+	{
+		bread.setPosition({ breadPozX , (breadSizeY / 2.0f) });
+	}
+}
+
 int main()
 {
 	sf::RenderWindow window(sf::VideoMode({ 1920,1080 }), "Shapes");
-	//window.setFramerateLimit(60);
-
-	//sf::RectangleShape shape({50.f, 100.f}); 
-	//shape.setOrigin(shape.getGeometricCenter());
-	//shape.setOrigin({ 25.f,50.f });
-	//shape.setFillColor(sf::Color::Red);
-	//shape.setPosition({ windowWidth / 2.f, windowHeight / 2.f });
 
 	float windowWidth = window.getSize().x;
 	float windowHeight = window.getSize().y;
 	sf::Clock clock;
 
 
-	sf::Texture background_t;
-	if (background_t.loadFromFile("../../../assets/images/background.jpg"))
+	sf::Texture backgroundTexture;
+	if (!backgroundTexture.loadFromFile(ASSETS_PATH "images/background.jpg"))
 	{
-		std::cout << "background.jpg loadfromfile error \n";
+		std::println("background.jpg loadfromfile error");
 	}
-	sf::Texture bread_t;
-	if (bread_t.loadFromFile("../../../assets/images/bread_spritesheet.png"))
+	sf::Texture breadTexture;
+	if (!breadTexture.loadFromFile(ASSETS_PATH "images/bread_spritesheet.png"))
 	{
-		std::cout << "background.jpg loadfromfile error \n";
+		std::println("bread_spritesheet.png loadfromfile error");
 	}
 
 
-	sf::Sprite background(background_t);
-	background.setScale({ windowWidth / background_t.getSize().x,windowHeight / background_t.getSize().y });
-	sf::Sprite bread(bread_t);
-	bread.setTextureRect(sf::IntRect({0, 0}, {32, 46}));
+	sf::Sprite background(backgroundTexture);
+	background.setScale({ windowWidth / backgroundTexture.getSize().x,windowHeight / backgroundTexture.getSize().y });
+	sf::Sprite bread(breadTexture);
+	bread.setTextureRect(sf::IntRect({ 0, 0 }, { 32, 32 }));
 	bread.setScale({ 4.0f,4.0f });
 	bread.setOrigin(bread.getLocalBounds().getCenter());
 	bread.setPosition({ windowWidth / 2.f, windowHeight / 2.f });
 
-	sf::IntRect frame_1({ 0,0 }, { 32,32 });
-	sf::IntRect frame_2({ 32,0 }, { 32,32 });
-	sf::IntRect frame_3({ 64,0 }, { 32,32 });
+	std::vector<sf::IntRect> idleFrames;
+	idleFrames.push_back(sf::IntRect({ 0, 0 }, { 32, 32 }));
+	idleFrames.push_back(sf::IntRect({ 32, 0 }, { 32, 32 }));
+	idleFrames.push_back(sf::IntRect({ 64, 0 }, { 32, 32 }));
 
-	sf::IntRect frame_4({ 0,32 }, { 32,32 });
-	sf::IntRect frame_5({ 32,32 }, { 32,32 });
-	sf::IntRect frame_6({ 64,32 }, { 32,32 });
-	sf::IntRect frame_7({ 96,32 }, { 32,32 });
-
-	
-
-	std::vector<sf::IntRect> idle_frames;
-	idle_frames.push_back(frame_1);
-	idle_frames.push_back(frame_2);
-	idle_frames.push_back(frame_3);
-
-	std::vector<sf::IntRect> walk_frames;
-	walk_frames.push_back(frame_4);
-	walk_frames.push_back(frame_5);
-	walk_frames.push_back(frame_6);
-	walk_frames.push_back(frame_7);
+	std::vector<sf::IntRect> walkFrames;
+	walkFrames.push_back(sf::IntRect({ 0, 32 }, { 32, 32 }));
+	walkFrames.push_back(sf::IntRect({ 32, 32 }, { 32, 32 }));
+	walkFrames.push_back(sf::IntRect({ 64, 32 }, { 32, 32 }));
+	walkFrames.push_back(sf::IntRect({ 96, 32 }, { 32, 32 }));
 
 	unsigned int stateIndex = 0;
-	unsigned int index = 0;
-	float anim_timer = 0.0f;
-	float anim_speed = 0.1f;
+	unsigned int frameIndex = 0;
+	float animationProgressSec = 0.0f;
+	constexpr float animationDurationSec = 0.1f;
 
 	std::vector<std::vector<sf::IntRect>> currentState;
-	currentState.push_back(idle_frames);
-	currentState.push_back(walk_frames);
-
-
+	currentState.push_back(idleFrames);
+	currentState.push_back(walkFrames);
 
 	sf::Font font;
-	if (font.openFromFile("../../../assets/fonts/RobotoMono-Regular.ttf"))
+	if (!font.openFromFile(ASSETS_PATH "fonts/RobotoMono-Regular.ttf"))
 	{
-		std::cout << "RobotoMono-Regular.ttf openfromfile error\n";
+		std::println("RobotoMono-Regular.ttf openfromfile error");
 	}
 	sf::Text text(font);
 	text.setString("        --- CONTROLS --- \n\n\n"
 		"[ X ]          : Cook The Bread\n\n"
-		"[ Z ]          : Make Bread Transparent\n\n"
-		"[ Q ] [ E ]    : Rotate Angle\n\n"
 		"[ Scroll ]     : Zoom In / Out\n\n"
 		"     [^]       \n"
 		"[<] [v] [>]    : Move Character\n"
@@ -114,14 +133,11 @@ int main()
 
 	sf::View view({ bread.getPosition(),{1920.0f,1080.0f} });
 	float zoomRate = 1.0f;
-	//view.zoom(1.0f);
-
-	
 
 	while (window.isOpen())
 	{
-		float dt = clock.restart().asSeconds();
-		float speed = 200 * dt;
+		float deltaTimeSec = clock.restart().asSeconds();
+		float speed = 200.0f * deltaTimeSec;
 
 		while (const std::optional event = window.pollEvent())
 		{
@@ -132,7 +148,7 @@ int main()
 
 			else if (auto* mouse = event->getIf<sf::Event::MouseWheelScrolled>())
 			{
-				if (mouse->delta == 1 && zoomRate > 0.2)
+				if (mouse->delta == 1 && zoomRate > 0.1)
 				{
 					zoomRate -= 0.1;
 					std::cout << zoomRate;
@@ -145,7 +161,7 @@ int main()
 					std::cout << zoomRate;
 					std::cout << "\n";
 					view.setSize({ windowWidth * zoomRate , windowHeight * zoomRate });
-					
+
 				}
 			}
 		}
@@ -185,47 +201,38 @@ int main()
 			bread.setColor(sf::Color(186, 142, 35));
 		}
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z))
+		animationProgressSec += deltaTimeSec;
+
+		if (animationProgressSec >= animationDurationSec)
 		{
-			bread.setColor(sf::Color(255, 255, 255, 128));
-		}
+			animationProgressSec = 0.0f;
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q))
-		{
-			bread.rotate(sf::degrees(-speed));
-		}
-
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E))
-		{
-			bread.rotate(sf::degrees(speed));
-		}
-
-		anim_timer += dt;
-
-		if (anim_timer >= anim_speed)
-		{
-			anim_timer = 0.0f;
-
-			if (index >= currentState[stateIndex].size() - 1)
+			if (frameIndex >= currentState[stateIndex].size() - 1)
 			{
-				index = 0;
+				frameIndex = 0;
 			}
 			else
 			{
-				++index;
+				++frameIndex;
 			}
-			bread.setTextureRect(currentState[stateIndex][index]);
+			bread.setTextureRect(currentState[stateIndex][frameIndex]);
 		}
 
 		stateIndex = 0;
+
+		float breadPozX = bread.getGlobalBounds().getCenter().x;
+		float breadPozY = bread.getGlobalBounds().getCenter().y;
+		float breadSizeX = bread.getGlobalBounds().size.x;
+		float breadSizeY = bread.getGlobalBounds().size.y;
+
+		checkCollision(bread, windowWidth, windowHeight, breadPozX, breadPozY, breadSizeX, breadSizeY);
 
 
 		window.clear();;
 		window.draw(background);
 		window.draw(text);
-		// window.draw(shape);
 		window.draw(bread);
-		window.setView(view);
+		//window.setView(view);
 		window.display();
 
 	}
