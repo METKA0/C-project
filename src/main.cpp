@@ -7,69 +7,111 @@
 #include <SFML/Audio.hpp>
 #include <SFML/Network.hpp>
 
+struct entity {
+	sf::Sprite entitySprite;
+	sf::Vector2f entityVector;
+};
 
-/*
-===============================================================================
-REFERENCES
-===============================================================================
-* https://www.sfml-dev.org/tutorials/3.0/graphics/text/
-* https://www.sfml-dev.org/tutorials/3.0/window/inputs/
-* https://www.sfml-dev.org/tutorials/3.0/getting-started/visual-studio/#creating-and-configuring-an-sfml-project
-* https://www.sfml-dev.org/tutorials/3.0/system/angle/#angles-in-sfml
-* https://www.sfml-dev.org/tutorials/3.0/graphics/sprite/#loading-a-texture
-* https://www.sfml-dev.org/tutorials/3.0/graphics/view/
-*
-* https://stackoverflow.com/questions/26857901/sfml-atan2-function-and-deceleration in order to understand how atan2 func works
-*
-* https://www.youtube.com/watch?v=cWgox89PZro&list=PLz6j8tWRKzOHQPOL5gGY4Ev6DoMRB2gee&index=2
-* https://www.youtube.com/watch?v=vz1jGgSVsUQ
-* https://www.youtube.com/watch?v=ulct06sYvoM
-* https://www.youtube.com/watch?v=LZXJEF39fm8
-* Font: Roboto Mono by Google Fonts (https://fonts.google.com/specimen/Roboto+Mono)
-===============================================================================
-*/
+struct policeCar {
+	sf::Sprite policeCarSprite;
+	sf::Vector2f policeCarVector;
+};
 
-
-void checkCollision(sf::Sprite& policeCar, sf::Sprite& mine, sf::Sprite& suspect, float windowWidth, float windowHeight, std::vector<sf::Vector2f>& mineVectors, bool& gameOver, std::vector<sf::Vector2f>& suspectVectors, int& score, sf::Sound& boomEffect, sf::Sound& handcuffEffect)
+struct spawnControl
 {
-	if (policeCar.getGlobalBounds().getCenter().x > windowWidth - (policeCar.getGlobalBounds().size.x / 2.0f))
-	{
-		policeCar.setPosition({ windowWidth - (policeCar.getGlobalBounds().size.x / 2.0f), policeCar.getGlobalBounds().getCenter().y });
-	}
-	if (policeCar.getGlobalBounds().getCenter().x < policeCar.getGlobalBounds().size.x / 2.0f)
-	{
-		policeCar.setPosition({ policeCar.getGlobalBounds().size.x / 2.0f, policeCar.getGlobalBounds().getCenter().y });
-	}
-	if (policeCar.getGlobalBounds().getCenter().y > windowHeight - (policeCar.getGlobalBounds().size.y / 2.0f))
-	{
-		policeCar.setPosition({ policeCar.getGlobalBounds().getCenter().x, windowHeight - (policeCar.getGlobalBounds().size.y / 2.0f) });
-	}
-	if (policeCar.getGlobalBounds().getCenter().y < (policeCar.getGlobalBounds().size.y / 2.0f))
-	{
-		policeCar.setPosition({ policeCar.getGlobalBounds().getCenter().x, (policeCar.getGlobalBounds().size.y / 2.0f) });
-	}
+	bool mineSpawned = false;
+	bool suspectSpawned = false;
+	bool policeSpawned = false;
+};
 
+void handleWindowCollision(policeCar& police, sf::RenderWindow& window)
+{
+	float windowWidth = window.getSize().x;
+	float windowHeight = window.getSize().y;
 
-	for (int i = 0; i < mineVectors.size(); i++)
+	if (police.policeCarSprite.getGlobalBounds().getCenter().x > windowWidth - (police.policeCarSprite.getGlobalBounds().size.x / 2.0f))
 	{
-		if (std::abs(policeCar.getGlobalBounds().getCenter().x - mineVectors[i].x) <= ((policeCar.getGlobalBounds().size.x / 2.0f) + (mine.getGlobalBounds().size.x / 2.0f)) && std::abs(policeCar.getGlobalBounds().getCenter().y - mineVectors[i].y) <= ((policeCar.getGlobalBounds().size.y / 2.0f) + (mine.getGlobalBounds().size.y / 2.0f)))
-		{
-			gameOver = true;
-			boomEffect.play();
-			return;
-		}
+		police.policeCarSprite.setPosition({ windowWidth - (police.policeCarSprite.getGlobalBounds().size.x / 2.0f), police.policeCarSprite.getGlobalBounds().getCenter().y });
 	}
-
-	for (int j = 0; j < suspectVectors.size(); j++)
+	if (police.policeCarSprite.getGlobalBounds().getCenter().x < police.policeCarSprite.getGlobalBounds().size.x / 2.0f)
 	{
-		if (std::abs(policeCar.getGlobalBounds().getCenter().x - suspectVectors[j].x) <= ((policeCar.getGlobalBounds().size.x / 2.0f) + (suspect.getGlobalBounds().size.x / 2.0f)) && std::abs(policeCar.getGlobalBounds().getCenter().y - suspectVectors[j].y) <= ((policeCar.getGlobalBounds().size.y / 2.0f) + (suspect.getGlobalBounds().size.y / 2.0f)))
-		{
-			score += 1;
-			handcuffEffect.play();
-			suspectVectors[j] = { -1,-1 }; // in drawSuspect function this spesific vector ignored to reDraw
-		}
+		police.policeCarSprite.setPosition({ police.policeCarSprite.getGlobalBounds().size.x / 2.0f, police.policeCarSprite.getGlobalBounds().getCenter().y });
+	}
+	if (police.policeCarSprite.getGlobalBounds().getCenter().y > windowHeight - (police.policeCarSprite.getGlobalBounds().size.y / 2.0f))
+	{
+		police.policeCarSprite.setPosition({ police.policeCarSprite.getGlobalBounds().getCenter().x, windowHeight - (police.policeCarSprite.getGlobalBounds().size.y / 2.0f) });
+	}
+	if (police.policeCarSprite.getGlobalBounds().getCenter().y < (police.policeCarSprite.getGlobalBounds().size.y / 2.0f))
+	{
+		police.policeCarSprite.setPosition({ police.policeCarSprite.getGlobalBounds().getCenter().x, (police.policeCarSprite.getGlobalBounds().size.y / 2.0f) });
 	}
 }
+
+bool checkMineCollision(policeCar& police, std::vector<entity>& mine)
+{
+	for (int i = 0; i < mine.size(); i++)
+	{
+		if (std::abs(police.policeCarSprite.getGlobalBounds().getCenter().x - mine[i].entityVector.x) <= ((police.policeCarSprite.getGlobalBounds().size.x / 2.0f) + (mine[i].entitySprite.getGlobalBounds().size.x / 2.0f)) && std::abs(police.policeCarSprite.getGlobalBounds().getCenter().y - mine[i].entityVector.y) <= ((police.policeCarSprite.getGlobalBounds().size.y / 2.0f) + (mine[i].entitySprite.getGlobalBounds().size.y / 2.0f)))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool checkSuspectCollision(policeCar& police, std::vector<entity>& suspect)
+{
+	for (int j = 0; j < suspect.size(); j++)
+	{
+		if (std::abs(police.policeCarSprite.getGlobalBounds().getCenter().x - suspect[j].entityVector.x) <= ((police.policeCarSprite.getGlobalBounds().size.x / 2.0f) + (suspect[j].entitySprite.getGlobalBounds().size.x / 2.0f)) && std::abs(police.policeCarSprite.getGlobalBounds().getCenter().y - suspect[j].entityVector.y) <= ((police.policeCarSprite.getGlobalBounds().size.y / 2.0f) + (suspect[j].entitySprite.getGlobalBounds().size.y / 2.0f)))
+		{
+			suspect[j].entityVector = { -1,-1 }; // in drawSuspect function this spesific vector ignored to reDraw
+			return true;
+		}
+	}
+	return false;
+}
+
+//void checkCollision(sf::Sprite& policeCar, sf::Sprite& mine, sf::Sprite& suspect, float windowWidth, float windowHeight, std::vector<sf::Vector2f>& mineVectors, bool& gameOver, std::vector<sf::Vector2f>& suspectVectors, int& score, sf::Sound& boomEffect, sf::Sound& handcuffEffect)
+//{
+//	if (policeCar.getGlobalBounds().getCenter().x > windowWidth - (policeCar.getGlobalBounds().size.x / 2.0f))
+//	{
+//		policeCar.setPosition({ windowWidth - (policeCar.getGlobalBounds().size.x / 2.0f), policeCar.getGlobalBounds().getCenter().y });
+//	}
+//	if (policeCar.getGlobalBounds().getCenter().x < policeCar.getGlobalBounds().size.x / 2.0f)
+//	{
+//		policeCar.setPosition({ policeCar.getGlobalBounds().size.x / 2.0f, policeCar.getGlobalBounds().getCenter().y });
+//	}
+//	if (policeCar.getGlobalBounds().getCenter().y > windowHeight - (policeCar.getGlobalBounds().size.y / 2.0f))
+//	{
+//		policeCar.setPosition({ policeCar.getGlobalBounds().getCenter().x, windowHeight - (policeCar.getGlobalBounds().size.y / 2.0f) });
+//	}
+//	if (policeCar.getGlobalBounds().getCenter().y < (policeCar.getGlobalBounds().size.y / 2.0f))
+//	{
+//		policeCar.setPosition({ policeCar.getGlobalBounds().getCenter().x, (policeCar.getGlobalBounds().size.y / 2.0f) });
+//	}
+//
+//
+//	for (int i = 0; i < mineVectors.size(); i++)
+//	{
+//		if (std::abs(policeCar.getGlobalBounds().getCenter().x - mineVectors[i].x) <= ((policeCar.getGlobalBounds().size.x / 2.0f) + (mine.getGlobalBounds().size.x / 2.0f)) && std::abs(policeCar.getGlobalBounds().getCenter().y - mineVectors[i].y) <= ((policeCar.getGlobalBounds().size.y / 2.0f) + (mine.getGlobalBounds().size.y / 2.0f)))
+//		{
+//			gameOver = true;
+//			boomEffect.play();
+//			return;
+//		}
+//	}
+//
+//	for (int j = 0; j < suspectVectors.size(); j++)
+//	{
+//		if (std::abs(policeCar.getGlobalBounds().getCenter().x - suspectVectors[j].x) <= ((policeCar.getGlobalBounds().size.x / 2.0f) + (suspect.getGlobalBounds().size.x / 2.0f)) && std::abs(policeCar.getGlobalBounds().getCenter().y - suspectVectors[j].y) <= ((policeCar.getGlobalBounds().size.y / 2.0f) + (suspect.getGlobalBounds().size.y / 2.0f)))
+//		{
+//			score += 1;
+//			handcuffEffect.play();
+//			suspectVectors[j] = { -1,-1 }; // in drawSuspect function this spesific vector ignored to reDraw
+//		}
+//	}
+//}
 
 float handleAccelerationX(float deltaTime, float currentAccelerationX)
 {
@@ -80,7 +122,7 @@ float handleAccelerationX(float deltaTime, float currentAccelerationX)
 	{
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
 		{
-			currentAccelerationX -= deltaTime / accelerationSlownessX;
+			currentAccelerationX -= deltaTime / (accelerationSlownessX * 0.5);
 
 			if (currentAccelerationX < -1)
 			{
@@ -90,7 +132,7 @@ float handleAccelerationX(float deltaTime, float currentAccelerationX)
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
 		{
-			currentAccelerationX += deltaTime / accelerationSlownessX;
+			currentAccelerationX += deltaTime / (accelerationSlownessX * 0.5);
 
 			if (currentAccelerationX > 1)
 			{
@@ -137,7 +179,7 @@ float handleAccelerationY(float deltaTime, float currentAccelerationY)
 	{
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
 		{
-			currentAccelerationY -= deltaTime / accelerationSlownessY;
+			currentAccelerationY -= deltaTime / (accelerationSlownessY * 0.5);
 
 			if (currentAccelerationY < -1)
 			{
@@ -147,7 +189,7 @@ float handleAccelerationY(float deltaTime, float currentAccelerationY)
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
 		{
-			currentAccelerationY += deltaTime / accelerationSlownessY;
+			currentAccelerationY += deltaTime / (accelerationSlownessY * 0.5);
 
 			if (currentAccelerationY > 1)
 			{
@@ -184,7 +226,7 @@ float handleAccelerationY(float deltaTime, float currentAccelerationY)
 	return currentAccelerationY;
 }
 
-sf::IntRect updateAnimationFrames(sf::Sprite& policeCar, float deltaTimeMs, sf::Vector2f Acceleration, unsigned& stateIndex, unsigned& frameIndex, float& animationProgressMs)
+sf::IntRect updateAnimationFrames(policeCar& police, float deltaTimeMs, sf::Vector2f Acceleration, unsigned& stateIndex, unsigned& frameIndex, float& animationProgressMs)
 {
 
 	std::vector<sf::IntRect> idleFrames;
@@ -212,11 +254,11 @@ sf::IntRect updateAnimationFrames(sf::Sprite& policeCar, float deltaTimeMs, sf::
 
 	if (Acceleration.x > 0.1f)
 	{
-		policeCar.setScale({ 0.5f, 0.5f });
+		police.policeCarSprite.setScale({ 0.5f, 0.5f });
 	}
 	else if (Acceleration.x < -0.1f)
 	{
-		policeCar.setScale({ -0.5f, 0.5f });
+		police.policeCarSprite.setScale({ -0.5f, 0.5f });
 	}
 
 	std::vector<std::vector<sf::IntRect>> currentState;
@@ -243,20 +285,20 @@ sf::IntRect updateAnimationFrames(sf::Sprite& policeCar, float deltaTimeMs, sf::
 	return currentState[stateIndex][frameIndex];
 }
 
-bool isPlaceEmptyForMine(sf::Sprite& mine, sf::Vector2f newMineVector, std::vector<sf::Vector2f> mineVectors, sf::RenderWindow& window)
+bool isPlaceEmptyForMine(sf::Vector2f newMineVector, std::vector<entity>& mine, sf::Sprite mineSprite, sf::RenderWindow& window)
 {
 
-	int mineSpriteSizePxX = mine.getGlobalBounds().size.x;
-	int mineSpriteSizePxY = mine.getGlobalBounds().size.y;
+	int mineSpriteSizePxX = mineSprite.getGlobalBounds().size.x;
+	int mineSpriteSizePxY = mineSprite.getGlobalBounds().size.y;
 
 	if (newMineVector.x > (window.getSize().x - mineSpriteSizePxX) || newMineVector.x < mineSpriteSizePxX || newMineVector.y >(window.getSize().y - mineSpriteSizePxY) || newMineVector.y < mineSpriteSizePxY)
 	{
 		return false;
 	}
 
-	for (int i = 0; i < mineVectors.size(); i++)
+	for (int i = 0; i < mine.size(); i++)
 	{
-		if (abs(mineVectors[i].x - newMineVector.x) < mineSpriteSizePxX && abs(mineVectors[i].y - newMineVector.y) < mineSpriteSizePxY)
+		if (abs(mine[i].entityVector.x - newMineVector.x) < mineSpriteSizePxX && abs(mine[i].entityVector.y - newMineVector.y) < mineSpriteSizePxY)
 		{
 			return false;
 		}
@@ -265,33 +307,33 @@ bool isPlaceEmptyForMine(sf::Sprite& mine, sf::Vector2f newMineVector, std::vect
 	return true;
 }
 
-bool isPlaceEmptyForSuspect(sf::Sprite& suspect, sf::Sprite mine, sf::Vector2f newSuspectVector, std::vector<sf::Vector2f> suspectVectors, std::vector<sf::Vector2f> mineVectors, sf::RenderWindow& window)
+bool isPlaceEmptyForSuspect(sf::Vector2f newSuspectVector, std::vector<entity>& suspect, sf::Sprite suspectCarSprite, std::vector<entity>& mine, sf::RenderWindow& window)
 {
 
-	int suspectSpriteSizePxX = suspect.getGlobalBounds().size.x;
-	int suspectSpriteSizePxY = suspect.getGlobalBounds().size.y;
+	int suspectSpriteSizePxX = suspectCarSprite.getGlobalBounds().size.x;
+	int suspectSpriteSizePxY = suspectCarSprite.getGlobalBounds().size.y;
 
-	int mineSpriteSizePxX = mine.getGlobalBounds().size.x;
-	int mineSpriteSizePxY = mine.getGlobalBounds().size.y;
+	int mineSpriteSizePxX = mine[0].entitySprite.getGlobalBounds().size.x;
+	int mineSpriteSizePxY = mine[0].entitySprite.getGlobalBounds().size.y;
 
 	if (newSuspectVector.x > (window.getSize().x - suspectSpriteSizePxX) || newSuspectVector.x < suspectSpriteSizePxX || newSuspectVector.y >(window.getSize().y - suspectSpriteSizePxY) || newSuspectVector.y < suspectSpriteSizePxY)
 	{
 		return false;
 	}
 
-	for (int i = 0; i < suspectVectors.size(); i++)
+	for (int i = 0; i < suspect.size(); i++)
 	{
-		if (abs(suspectVectors[i].x - newSuspectVector.x) < suspectSpriteSizePxX && abs(suspectVectors[i].y - newSuspectVector.y) < suspectSpriteSizePxY)
+		if (abs(suspect[i].entityVector.x - newSuspectVector.x) < suspectSpriteSizePxX && abs(suspect[i].entityVector.y - newSuspectVector.y) < suspectSpriteSizePxY)
 		{
 			return false;
 		}
 	}
 
-	for (int i = 0; i <= suspectVectors.size(); i++)
+	for (int i = 0; i <= suspect.size(); i++)
 	{
-		for (int j = 0; j < mineVectors.size(); j++)
+		for (int j = 0; j < mine.size(); j++)
 		{
-			if (abs(mineVectors[j].x - newSuspectVector.x) < ((suspectSpriteSizePxX / 2.0f) + (mineSpriteSizePxX / 2.0f)) && abs(mineVectors[j].y - newSuspectVector.y) < ((suspectSpriteSizePxY / 2.0f) + (mineSpriteSizePxY / 2.0f)))
+			if (abs(mine[j].entityVector.x - newSuspectVector.x) < ((suspectSpriteSizePxX / 2.0f) + (mineSpriteSizePxX / 2.0f)) && abs(mine[j].entityVector.y - newSuspectVector.y) < ((suspectSpriteSizePxY / 2.0f) + (mineSpriteSizePxY / 2.0f)))
 			{
 				return false;
 			}
@@ -301,33 +343,33 @@ bool isPlaceEmptyForSuspect(sf::Sprite& suspect, sf::Sprite mine, sf::Vector2f n
 	return true;
 }
 
-bool isPlaceEmptyForPolice(sf::Sprite& policeCar, sf::Sprite& suspect, sf::Sprite mine, sf::Vector2f newPoliceVector, std::vector<sf::Vector2f> suspectVectors, std::vector<sf::Vector2f> mineVectors, sf::RenderWindow& window)
+bool isPlaceEmptyForPolice(sf::Vector2f newPoliceVector, policeCar& police, std::vector<entity>& suspect, std::vector<entity>& mine, sf::RenderWindow& window)
 {
-	int suspectSpriteSizePxX = suspect.getGlobalBounds().size.x;
-	int suspectSpriteSizePxY = suspect.getGlobalBounds().size.y;
+	int suspectSpriteSizePxX = suspect[0].entitySprite.getGlobalBounds().size.x;
+	int suspectSpriteSizePxY = suspect[0].entitySprite.getGlobalBounds().size.y;
 
-	int mineSpriteSizePxX = mine.getGlobalBounds().size.x;
-	int mineSpriteSizePxY = mine.getGlobalBounds().size.y;
+	int mineSpriteSizePxX = mine[0].entitySprite.getGlobalBounds().size.x;
+	int mineSpriteSizePxY = mine[0].entitySprite.getGlobalBounds().size.y;
 
-	int policeCarSpriteSizePxX = suspect.getGlobalBounds().size.x;
-	int policeCarSpriteSizePxY = suspect.getGlobalBounds().size.y;
+	int policeCarSpriteSizePxX = police.policeCarSprite.getGlobalBounds().size.x;
+	int policeCarSpriteSizePxY = police.policeCarSprite.getGlobalBounds().size.y;
 
 	if (newPoliceVector.x > (window.getSize().x - policeCarSpriteSizePxX) || newPoliceVector.x < policeCarSpriteSizePxX || newPoliceVector.y >(window.getSize().y - policeCarSpriteSizePxY) || newPoliceVector.y < policeCarSpriteSizePxY)
 	{
 		return false;
 	}
 
-	for (int i = 0; i < mineVectors.size(); i++)
+	for (int i = 0; i < mine.size(); i++)
 	{
-		if (abs(mineVectors[i].x - newPoliceVector.x) < ((mineSpriteSizePxX / 2.0f) + (policeCarSpriteSizePxX / 2.0f)) && abs(mineVectors[i].y - newPoliceVector.y) < ((mineSpriteSizePxY / 2.0f) + (policeCarSpriteSizePxY / 2.0f)))
+		if (abs(mine[i].entityVector.x - newPoliceVector.x) < ((mineSpriteSizePxX / 2.0f) + (policeCarSpriteSizePxX / 2.0f)) && abs(mine[i].entityVector.y - newPoliceVector.y) < ((mineSpriteSizePxY / 2.0f) + (policeCarSpriteSizePxY / 2.0f)))
 		{
 			return false;
 		}
 	}
 
-	for (int i = 0; i < suspectVectors.size(); i++)
+	for (int i = 0; i < suspect.size(); i++)
 	{
-		if (abs(suspectVectors[i].x - newPoliceVector.x) < ((suspectSpriteSizePxX / 2.0f) + (policeCarSpriteSizePxX / 2.0f)) && abs(suspectVectors[i].y - newPoliceVector.y) < ((suspectSpriteSizePxY / 2.0f) + (policeCarSpriteSizePxY / 2.0f)))
+		if (abs(suspect[i].entityVector.x - newPoliceVector.x) < ((suspectSpriteSizePxX / 2.0f) + (policeCarSpriteSizePxX / 2.0f)) && abs(suspect[i].entityVector.y - newPoliceVector.y) < ((suspectSpriteSizePxY / 2.0f) + (policeCarSpriteSizePxY / 2.0f)))
 		{
 			return false;
 		}
@@ -336,17 +378,17 @@ bool isPlaceEmptyForPolice(sf::Sprite& policeCar, sf::Sprite& suspect, sf::Sprit
 	return true;
 }
 
-void drawMine(sf::Sprite mine, int mineCount, sf::RenderWindow& window, bool& minesSpawned, std::vector<sf::Vector2f>& mineVectors)
+void drawMine(sf::Sprite mineSprite, int mineCount, sf::RenderWindow& window, spawnControl& spawns, std::vector<entity>& mine)
 {
-	if (!minesSpawned)
+	if (!spawns.mineSpawned)
 	{
 		for (int i = 0; i < mineCount; i++)
 		{
 			sf::Vector2f newMineVector = { (float)(std::rand() % window.getSize().x) , (float)(std::rand() % window.getSize().y) };
 
-			if (isPlaceEmptyForMine(mine, newMineVector, mineVectors, window))
+			if (isPlaceEmptyForMine(newMineVector, mine, mineSprite, window))
 			{
-				mineVectors.push_back(newMineVector);
+				mine.push_back({ mineSprite, newMineVector });
 			}
 			else
 			{
@@ -355,29 +397,29 @@ void drawMine(sf::Sprite mine, int mineCount, sf::RenderWindow& window, bool& mi
 		}
 	}
 
-	for (int temp = 0; temp < mineVectors.size(); temp++)
+	for (int temp = 0; temp < mine.size(); temp++)
 	{
-		mine.setPosition(mineVectors[temp]);
-		window.draw(mine);
+		mine[temp].entitySprite.setPosition(mine[temp].entityVector);
+		window.draw(mine[temp].entitySprite);
 	}
 
-	minesSpawned = true;
+	spawns.mineSpawned = true;
 }
 
-void drawSuspect(sf::Sprite suspect, sf::Sprite mine, int& suspectCount, int& currentSuspectCount, sf::RenderWindow& window, bool& suspectsSpawned, std::vector<sf::Vector2f>& suspectVectors, std::vector<sf::Vector2f>& mineVectors)
+void drawSuspect(sf::Sprite suspectCarSprite, const int& suspectCount, int& currentSuspectCount, sf::RenderWindow& window, spawnControl& spawns, std::vector<entity>& suspect, std::vector<entity>& mine)
 {
 
 	currentSuspectCount = 0;
 
-	if (!suspectsSpawned)
+	if (!spawns.suspectSpawned)
 	{
 		for (int i = 0; i < suspectCount; i++)
 		{
 			sf::Vector2f newSuspectVector = { (float)(std::rand() % window.getSize().x) , (float)(std::rand() % window.getSize().y) };
 
-			if (isPlaceEmptyForSuspect(suspect, mine, newSuspectVector, suspectVectors, mineVectors, window))
+			if (isPlaceEmptyForSuspect(newSuspectVector, suspect, suspectCarSprite, mine, window))
 			{
-				suspectVectors.push_back(newSuspectVector);
+				suspect.push_back({ suspectCarSprite, newSuspectVector });
 			}
 			else
 			{
@@ -386,33 +428,33 @@ void drawSuspect(sf::Sprite suspect, sf::Sprite mine, int& suspectCount, int& cu
 		}
 	}
 
-	for (int temp = 0; temp < suspectVectors.size(); temp++)
+	for (int temp = 0; temp < suspect.size(); temp++)
 	{
-		suspect.setTextureRect(sf::IntRect({ 384 * temp, 0 }, { 384, 192 }));
-		suspect.setPosition(suspectVectors[temp]);
+		suspect[temp].entitySprite.setTextureRect(sf::IntRect({ 384 * temp, 0 }, { 384, 192 }));
+		suspect[temp].entitySprite.setPosition(suspect[temp].entityVector);
 
-		if (suspectVectors[temp] != sf::Vector2f{ -1, -1 }) //suspectCar's location changes to -1,-1 if the policeCar collide with an suspectCar so before we drawing we check if car should be redraw again or stay destroyed 
+		if (suspect[temp].entityVector != sf::Vector2f{ -1, -1 }) //suspectCar's location changes to -1,-1 if the policeCar collide with an suspectCar so before we drawing we check if car should be redraw again or stay destroyed 
 		{
-			window.draw(suspect);
+			window.draw(suspect[temp].entitySprite);
 			currentSuspectCount++;
 		}
 	}
 
-	suspectsSpawned = true;
+	spawns.suspectSpawned = true;
 }
 
-void drawPolice(sf::Sprite& policeCar, sf::Sprite suspect, sf::Sprite mine, const int suspectCount, sf::RenderWindow& window, bool& policeSpawned, std::vector<sf::Vector2f>& suspectVectors, std::vector<sf::Vector2f>& mineVectors, sf::Vector2f& newPoliceVector)
+void drawPolice(const int suspectCount, sf::RenderWindow& window, std::vector<entity>& suspect, std::vector<entity>& mine, policeCar& police, spawnControl& spawns)
 {
-	if (!policeSpawned)
+	if (!spawns.policeSpawned)
 	{
 		for (int i = 0; i < 1; i++)
 		{
-			newPoliceVector = { (float)(std::rand() % window.getSize().x) , (float)(std::rand() % window.getSize().y) };
+			sf::Vector2f newPoliceVector = { (float)(std::rand() % window.getSize().x) , (float)(std::rand() % window.getSize().y) };
 
-			if (isPlaceEmptyForPolice(policeCar, suspect, mine, newPoliceVector, suspectVectors, mineVectors, window))
+			if (isPlaceEmptyForPolice(newPoliceVector, police, suspect, mine, window))
 			{
-				policeCar.setPosition(newPoliceVector);
-				window.draw(policeCar);
+				police.policeCarSprite.setPosition(newPoliceVector);
+				window.draw(police.policeCarSprite);
 			}
 			else
 			{
@@ -421,33 +463,48 @@ void drawPolice(sf::Sprite& policeCar, sf::Sprite suspect, sf::Sprite mine, cons
 		}
 	}
 
-	window.draw(policeCar);
+	window.draw(police.policeCarSprite);
 
-	policeSpawned = true;
+	spawns.policeSpawned = true;
 }
 
-void resetGame(int& mineCount, int& currentSuspectCount, bool& minesSpawned, bool& suspectsSpawned, bool& policeSpawned, bool& gameOver, int& score, std::vector<sf::Vector2f>& suspectVectors, std::vector<sf::Vector2f>& mineVectors, sf::Vector2f& acceleration)
+void handleEffects(bool& isArrested, bool gameOver, sf::Sound& boomEffect, sf::Sound& handcuffEffect)
 {
-
-	if (currentSuspectCount == 0)
+	if (isArrested)
 	{
-		minesSpawned = false;
-		suspectsSpawned = false;
-		policeSpawned = false;
-		suspectVectors.clear();
-		mineVectors.clear();
-		if (mineCount < 25) { mineCount += 1; }
-		acceleration = { 0.0f,0.0f };
+		handcuffEffect.play();
+		isArrested = false;
 	}
-
 
 	if (gameOver)
 	{
-		minesSpawned = false;
-		suspectsSpawned = false;
-		policeSpawned = false;
-		suspectVectors.clear();
-		mineVectors.clear();
+		boomEffect.play();
+	}
+}
+
+void resetLevel(int currentSuspectCount, int& mineCount, spawnControl& spawns, std::vector<entity>& suspect, std::vector<entity>& mine, sf::Vector2f& acceleration)
+{
+	if (currentSuspectCount == 0)
+	{
+		spawns.mineSpawned = false;
+		spawns.suspectSpawned = false;
+		spawns.policeSpawned = false;
+		suspect.clear();
+		mine.clear();
+		if (mineCount < 25) { mineCount += 1; }
+		acceleration = { 0.0f,0.0f };
+	}
+}
+
+void handleGameOver(bool& gameOver, int& score, int& mineCount, spawnControl& spawns, std::vector<entity>& suspect, std::vector<entity>& mine, sf::Vector2f& acceleration)
+{
+	if (gameOver)
+	{
+		spawns.mineSpawned = false;
+		spawns.suspectSpawned = false;
+		spawns.policeSpawned = false;
+		suspect.clear();
+		mine.clear();
 		score = 0;
 		mineCount = 10;
 
@@ -455,8 +512,6 @@ void resetGame(int& mineCount, int& currentSuspectCount, bool& minesSpawned, boo
 
 		gameOver = false;
 	}
-
-
 }
 
 int main()
@@ -467,23 +522,6 @@ int main()
 	float windowHeight = window.getSize().y;
 	sf::Clock clock;
 
-	srand(time(0));
-	int mineCount = 10;
-	bool minesSpawned = false;
-	std::vector<sf::Vector2f> mineVectors;
-
-	bool gameOver = false;
-
-	int suspectCount = 5; // sprite sheet have only 5 different car
-	int currentSuspectCount = 0; // number of suspect on the screen
-	bool suspectsSpawned = false;
-	std::vector<sf::Vector2f> suspectVectors;
-
-	int score = 0;
-
-
-	sf::Vector2f newPoliceVector;
-	bool policeSpawned = false;
 
 	sf::Texture backgroundTexture;
 	if (!backgroundTexture.loadFromFile(ASSETS_PATH "images/background.png"))
@@ -509,46 +547,46 @@ int main()
 	sf::Sprite background(backgroundTexture);
 	background.setScale({ windowWidth / backgroundTexture.getSize().x,windowHeight / backgroundTexture.getSize().y });
 
-	sf::Sprite mine(mineTexture);
-	mine.setTextureRect(sf::IntRect({ 0, 0 }, { 96, 96 }));
-	mine.setScale({ 0.5f,0.5f });
-	mine.setOrigin(mine.getLocalBounds().getCenter());
+	sf::Sprite mineSprite(mineTexture);
+	mineSprite.setTextureRect(sf::IntRect({ 0, 0 }, { 96, 96 }));
+	mineSprite.setScale({ 0.5f,0.5f });
+	mineSprite.setOrigin(mineSprite.getLocalBounds().getCenter());
 
-	sf::Sprite policeCar(policeCarTexture);
-	policeCar.setTextureRect(sf::IntRect({ 0, 0 }, { 384, 192 }));
-	policeCar.setScale({ 0.5f,0.5f });
-	policeCar.setOrigin(policeCar.getLocalBounds().getCenter());
-	//policeCar.setPosition({ windowWidth / 2.f, windowHeight / 2.f });
+	sf::Sprite policeCarSprite(policeCarTexture);
+	policeCarSprite.setTextureRect(sf::IntRect({ 0, 0 }, { 384, 192 }));
+	policeCarSprite.setScale({ 0.5f,0.5f });
+	policeCarSprite.setOrigin(policeCarSprite.getLocalBounds().getCenter());
 
-	sf::Sprite suspectCars(suspectCarsTexture);
-	suspectCars.setTextureRect(sf::IntRect({ 0, 0 }, { 384, 192 }));
-	suspectCars.setScale({ 0.5f,0.5f });
-	suspectCars.setOrigin(suspectCars.getLocalBounds().getCenter());
+	sf::Sprite suspectCarSprite(suspectCarsTexture);
+	suspectCarSprite.setTextureRect(sf::IntRect({ 0, 0 }, { 384, 192 }));
+	suspectCarSprite.setScale({ 0.5f,0.5f });
+	suspectCarSprite.setOrigin(suspectCarSprite.getLocalBounds().getCenter());
 
 	sf::SoundBuffer boomBuffer;
-	if (!boomBuffer.loadFromFile(ASSETS_PATH "sounds/boomEffect.mp3"))
+	if (!boomBuffer.loadFromFile(ASSETS_PATH "sounds/boomEffect.ogg"))
 	{
 		std::println("boomEffect.mp3 loadfromfile error");
 	}
 	sf::SoundBuffer handcuffBuffer;
-	if (!handcuffBuffer.loadFromFile(ASSETS_PATH "sounds/handcuffEffect.mp3"))
+	if (!handcuffBuffer.loadFromFile(ASSETS_PATH "sounds/handcuffEffect.ogg")) // i convert all the mp3 to ogg because mp3 version print error msg even if it is working | source : https://en.sfml-dev.org/forums/index.php?topic=15905.0
 	{
 		std::println("handcuffEffect.mp3 loadfromfile error");
 	}
 
 	sf::Sound boomEffect(boomBuffer);
-	boomEffect.setVolume(2000.0f);
+	boomEffect.setVolume(100.0f);
 	sf::Sound handcuffEffect(handcuffBuffer);
-	handcuffEffect.setVolume(200.0f);
+	handcuffEffect.setVolume(50.0f);
 
 	sf::Music backgroundMusic;
-	if (!backgroundMusic.openFromFile(ASSETS_PATH "sounds/backgroundMusic.mp3"))
+	if (!backgroundMusic.openFromFile(ASSETS_PATH "sounds/backgroundMusic.ogg"))
 	{
 		std::println("backgroundMusic.mp3 openfromfile error");
 	}
 
 	backgroundMusic.play();
 	backgroundMusic.setLooping(true);
+	backgroundMusic.setVolume(25.0f);
 
 	sf::Font font;
 	if (!font.openFromFile(ASSETS_PATH "fonts/RobotoMono-Regular.ttf"))
@@ -571,6 +609,22 @@ int main()
 	scoreText.setPosition({ windowWidth / 2.f, windowHeight / 2.f });
 
 
+	srand(time(0));
+	int mineCount = 10;
+	std::vector<entity> mine;
+
+	bool gameOver = false;
+	bool isArrested = false;
+
+	const int suspectCount = 5; // sprite sheet have only 5 different car
+	int currentSuspectCount = 0; // number of suspect on the screen
+	std::vector<entity> suspect;
+
+	int score = 0;
+
+	policeCar police = { policeCarSprite,{5000.f,5000.f} };
+
+	spawnControl spawns;
 
 	sf::Vector2f acceleration = { 0 , 0 };
 
@@ -588,33 +642,34 @@ int main()
 			}
 		}
 
-
 		float deltaTimeMs = clock.restart().asSeconds() * 1000;
 		float speedPx = 0.3f;
 		float displacementPx = speedPx * deltaTimeMs;
 
 		acceleration = { handleAccelerationX(deltaTimeMs,acceleration.x),handleAccelerationY(deltaTimeMs, acceleration.y) };
-		//std::print("x = {}  -  y = {}  ---- gameOver = {} ---- score = {}\n", acceleration.x, acceleration.y, gameOver, score);
-		policeCar.move({ acceleration.x * displacementPx , acceleration.y * displacementPx });
+		police.policeCarSprite.move({ acceleration.x * displacementPx , acceleration.y * displacementPx });
 
-		checkCollision(policeCar, mine, suspectCars, windowWidth, windowHeight, mineVectors, gameOver, suspectVectors, score, boomEffect, handcuffEffect);
+		/*checkCollision(policeCarSprite, mineSprite, suspectCarSprite, windowWidth, windowHeight, mineVectors, gameOver, suspectVectors, score, boomEffect, handcuffEffect);*/
+		handleWindowCollision(police, window);
+		if (checkMineCollision(police, mine)) { gameOver = true; }
+		if (checkSuspectCollision(police, suspect)) { isArrested = true; score++; }
 
-		policeCar.setTextureRect((updateAnimationFrames(policeCar, deltaTimeMs, acceleration, stateIndex, frameIndex, animationProgressMs)));
-
-		resetGame(mineCount, currentSuspectCount, minesSpawned, suspectsSpawned, policeSpawned, gameOver, score, suspectVectors, mineVectors, acceleration);
+		police.policeCarSprite.setTextureRect((updateAnimationFrames(police, deltaTimeMs, acceleration, stateIndex, frameIndex, animationProgressMs)));
 
 		window.clear();
 		window.draw(background);
 		window.draw(text);
 		scoreText.setString(std::to_string(score));
 		window.draw(scoreText);
-		drawMine(mine, mineCount, window, minesSpawned, mineVectors);
-		drawSuspect(suspectCars, mine, suspectCount, currentSuspectCount, window, suspectsSpawned, suspectVectors, mineVectors);
-		drawPolice(policeCar, suspectCars, mine, suspectCount, window, policeSpawned, suspectVectors, mineVectors, newPoliceVector);
+		drawMine(mineSprite, mineCount, window, spawns, mine);
+		drawSuspect(suspectCarSprite, suspectCount, currentSuspectCount, window, spawns, suspect, mine);
+		drawPolice(suspectCount, window, suspect, mine, police, spawns);
 		window.display();
 
+		handleEffects(isArrested, gameOver, boomEffect, handcuffEffect);
+		resetLevel(currentSuspectCount, mineCount, spawns, suspect, mine, acceleration);
+		handleGameOver(gameOver, score, mineCount, spawns, suspect, mine, acceleration);
 	}
-
 
 	return 0;
 }
